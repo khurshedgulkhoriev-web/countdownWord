@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Особенный сюрприз 💖</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #07050a;
+      color: #fff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    canvas#matrixCanvas,
+    canvas#starCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    canvas#matrixCanvas {
+      z-index: 1;
+      opacity: 0.95;
+      transition: opacity 0.6s ease;
+    }
+
+    canvas#starCanvas {
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    .stage {
+      position: relative;
+      z-index: 5;
+      width: 100%;
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: radial-gradient(circle at center, #1b0d18 0%, #07050a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      transition: opacity 0.45s ease;
+    }
+
+    .intro-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .intro-btn {
+      background: linear-gradient(135deg, #ff5ca8, #ff2e7e);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 16px 34px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 32px rgba(255, 65, 145, 0.42);
+      transition: transform 0.2s ease;
+    }
+
+    .intro-btn:active {
+      transform: scale(0.96);
+    }
+
+    .intro-sub {
+      margin-top: 12px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .big-word {
+      position: fixed;
+      inset: 0;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: clamp(46px, 14vw, 96px);
+      letter-spacing: 0.04em;
+      color: #ff66b3;
+      text-shadow: 0 0 24px rgba(255, 77, 166, 0.85), 0 0 55px rgba(255, 40, 130, 0.45);
+      opacity: 0;
+      transform: scale(0.75);
+      transition: opacity 0.28s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+
+    .big-word.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .big-heart {
+      font-size: clamp(86px, 24vw, 150px);
+    }
+
+    .book-scene {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 390px;
+      z-index: 8;
+      animation: popIn 0.5s ease;
+    }
+
+    .book-scene.active {
+      display: flex;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .book-card {
+      width: 100%;
+      background: #fff9f5;
+      color: #23191e;
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 30px rgba(255, 105, 180, 0.2);
+      cursor: pointer;
+      transition: transform 0.25s ease;
+    }
+
+    .book-card:active {
+      transform: scale(0.985);
+    }
+
+    .book-note {
+      background: #fff0f6;
+      border: 1px solid #ffd2e5;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #3a1c2a;
+      text-align: center;
+      margin-bottom: 14px;
+      line-height: 1.45;
+    }
+
+    .book-photo-box {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #ffe3ee, #ffd6e7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .book-photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .book-photo-box.has-img img {
+      display: block;
+    }
+
+    .book-photo-placeholder {
+      text-align: center;
+      color: #9e4b72;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 16px;
+    }
+
+    .book-photo-box.has-img .book-photo-placeholder {
+      display: none;
+    }
+
+    .book-controls {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 10px;
+    }
+
+    .nav-pill {
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .nav-pill.primary {
+      background: linear-gradient(135deg, #ff5ca8, #ff2e7e);
+      border: none;
+    }
+
+    .page-indicator {
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.75);
+      font-weight: 600;
+    }
+
+    .heart-collage-scene {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 9;
+      animation: popIn 0.6s ease;
+    }
+
+    .heart-collage-scene.active {
+      display: flex;
+    }
+
+    .heart-grid {
+      position: relative;
+      width: min(88vw, 350px);
+      height: min(82vw, 330px);
+      animation: pulseHeart 2.8s ease-in-out infinite;
+    }
+
+    @keyframes pulseHeart {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.035); }
+    }
+
+    .heart-tile {
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 130, 190, 0.85);
+      box-shadow: 0 0 14px rgba(255, 75, 160, 0.55);
+      background: #24111d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transform: translate(-50%, -50%);
+    }
+
+    .heart-tile img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .heart-tile.has-img img {
+      display: block;
+    }
+
+    .heart-tile.has-img span {
+      display: none;
+    }
+
+    .floating-heart {
+      position: fixed;
+      bottom: -30px;
+      font-size: 18px;
+      z-index: 10;
+      pointer-events: none;
+      animation: riseHeart linear forwards;
+    }
+
+    @keyframes riseHeart {
+      0% { transform: translateY(0) scale(0.8); opacity: 0.95; }
+      100% { transform: translateY(-105vh) scale(1.25); opacity: 0; }
+    }
+
+    .replay-btn {
+      margin-top: 22px;
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+      padding: 10px 22px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="matrixCanvas"></canvas>
+  <canvas id="starCanvas"></canvas>
+
+  <div class="intro-overlay" id="introOverlay">
+    <button type="button" class="intro-btn" id="startBtn">Открыть сюрприз ✨</button>
+    <p class="intro-sub">Нажми, чтобы запустить анимацию</p>
+  </div>
+
+  <div class="big-word" id="bigWord"></div>
+
+  <main class="stage">
+    <section class="book-scene" id="bookScene">
+      <div class="book-card" id="bookCard">
+        <div class="book-note" id="bookNote"></div>
+        <div class="book-photo-box" id="bookPhotoBox">
+          <img id="bookPhotoImg" alt="Фото" />
+          <div class="book-photo-placeholder" id="bookPlaceholder">💖 Нажми, чтобы перелистнуть</div>
+        </div>
+      </div>
+
+      <div class="book-controls">
+        <button type="button" class="nav-pill" id="prevPageBtn">← Назад</button>
+        <span class="page-indicator" id="pageIndicator">1 / 3</span>
+        <button type="button" class="nav-pill primary" id="nextPageBtn">Далее →</button>
+      </div>
+    </section>
+
+    <section class="heart-collage-scene" id="heartScene">
+      <div class="heart-grid" id="heartGrid"></div>
+      <button type="button" class="replay-btn" id="replayBtn">Посмотреть ещё раз ↻</button>
+    </section>
+  </main>
+
+  <script>
+    const CONFIG = {
+      sequenceWords: ["ДЛЯ", "ТЕБЯ", "❤️"],
+
+      pages: [
+        {
+          text: "С самого первого момента рядом с тобой всё стало ярче 🧡",
+          photo: "Photo1.jpg"
+        },
+        {
+          text: "Пусть каждый день приносит улыбки и тёплые моменты ✨",
+          photo: "Photo2.jpg"
+        },
+        {
+          text: "Просто хочу сказать, что ты особенная 💖",
+          photo: "Photo3.jpg"
+        }
+      ],
+
+      heartPhotos: [
+        "Photo1.jpg",
+        "Photo2.jpg",
+        "Photo3.jpg"
+      ]
+    };
+
+    const matrixCanvas = document.getElementById("matrixCanvas");
+    const mCtx = matrixCanvas.getContext("2d");
+    const starCanvas = document.getElementById("starCanvas");
+    const sCtx = starCanvas.getContext("2d");
+
+    let width, height, columns, drops;
+    let stars = [];
+    let matrixRunning = true;
+    let floatingInterval = null;
+
+    function resizeCanvases() {
+      width = matrixCanvas.width = starCanvas.width = window.innerWidth;
+      height = matrixCanvas.height = starCanvas.height = window.innerHeight;
+      const fontSize = 16;
+      columns = Math.floor(width / fontSize);
+      drops = Array.from({ length: columns }, () => Math.random() * -40);
+
+      stars = Array.from({ length: 90 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 1.8 + 0.5,
+        a: Math.random(),
+        da: (Math.random() * 0.02 + 0.005) * (Math.random() < 0.5 ? 1 : -1)
+      }));
+    }
+
+    window.addEventListener("resize", resizeCanvases);
+    resizeCanvases();
+
+    const glyphs = "01♥★✦♡LOVE✨";
+    function drawMatrix() {
+      if (!matrixRunning) return;
+      mCtx.fillStyle = "rgba(7, 5, 10, 0.14)";
+      mCtx.fillRect(0, 0, width, height);
+
+      mCtx.font = "700 15px monospace";
+      for (let i = 0; i < drops.length; i++) {
+        const ch = glyphs[Math.floor(Math.random() * glyphs.length)];
+        mCtx.fillStyle = i % 3 === 0 ? "#ff85c2" : "#ff3b9a";
+        mCtx.fillText(ch, i * 16, drops[i] * 16);
+
+        if (drops[i] * 16 > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i] += 0.9;
+      }
+      requestAnimationFrame(drawMatrix);
+    }
+    drawMatrix();
+
+    function drawStars() {
+      sCtx.clearRect(0, 0, width, height);
+      for (const st of stars) {
+        st.a += st.da;
+        if (st.a <= 0.1 || st.a >= 1) st.da *= -1;
+        sCtx.beginPath();
+        sCtx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+        sCtx.fillStyle = `rgba(255, 235, 245, ${st.a.toFixed(2)})`;
+        sCtx.fill();
+      }
+      requestAnimationFrame(drawStars);
+    }
+    drawStars();
+
+    const introOverlay = document.getElementById("introOverlay");
+    const startBtn = document.getElementById("startBtn");
+    const bigWord = document.getElementById("bigWord");
+    const bookScene = document.getElementById("bookScene");
+    const heartScene = document.getElementById("heartScene");
+    const bookCard = document.getElementById("bookCard");
+    const bookNote = document.getElementById("bookNote");
+    const bookPhotoBox = document.getElementById("bookPhotoBox");
+    const bookPhotoImg = document.getElementById("bookPhotoImg");
+    const pageIndicator = document.getElementById("pageIndicator");
+    const prevPageBtn = document.getElementById("prevPageBtn");
+    const nextPageBtn = document.getElementById("nextPageBtn");
+    const heartGrid = document.getElementById("heartGrid");
+    const replayBtn = document.getElementById("replayBtn");
+
+    let currentPage = 0;
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function flashText(text, duration = 950, isHeart = false) {
+      bigWord.textContent = text;
+      bigWord.classList.toggle("big-heart", isHeart);
+      bigWord.classList.add("show");
+      await sleep(duration);
+      bigWord.classList.remove("show");
+      await sleep(260);
+    }
+
+    function renderPage(index) {
+      const item = CONFIG.pages[index];
+      bookNote.textContent = item.text;
+      pageIndicator.textContent = `${index + 1} / ${CONFIG.pages.length}`;
+
+      if (item.photo && item.photo.trim()) {
+        bookPhotoImg.src = item.photo.trim();
+        bookPhotoBox.classList.add("has-img");
+      } else {
+        bookPhotoImg.removeAttribute("src");
+        bookPhotoBox.classList.remove("has-img");
+      }
+
+      nextPageBtn.textContent = index === CONFIG.pages.length - 1 ? "К сердцу 💖" : "Далее →";
+    }
+
+    function buildHeartCollage() {
+      heartGrid.innerHTML = "";
+      const totalTiles = 24;
+      const cx = heartGrid.clientWidth / 2 || 170;
+      const cy = heartGrid.clientHeight / 2.15 || 150;
+      const scale = Math.min(cx, cy) * 0.068;
+
+      for (let i = 0; i < totalTiles; i++) {
+        const t = (i / totalTiles) * Math.PI * 2;
+        const hx = 16 * Math.pow(Math.sin(t), 3);
+        const hy = -(
+          13 * Math.cos(t) -
+          5 * Math.cos(2 * t) -
+          2 * Math.cos(3 * t) -
+          Math.cos(4 * t)
+        );
+
+        const tile = document.createElement("div");
+        tile.className = "heart-tile";
+        tile.style.left = `${cx + hx * scale}px`;
+        tile.style.top = `${cy + hy * scale}px`;
+
+        const photoUrl = CONFIG.heartPhotos[i % Math.max(1, CONFIG.heartPhotos.length)];
+        if (photoUrl && photoUrl.trim()) {
+          const img = document.createElement("img");
+          img.src = photoUrl.trim();
+          img.alt = "Фото";
+          tile.appendChild(img);
+          tile.classList.add("has-img");
+        } else {
+          const span = document.createElement("span");
+          span.textContent = i % 2 === 0 ? "💖" : "✨";
+          tile.appendChild(span);
+        }
+
+        heartGrid.appendChild(tile);
+      }
+    }
+
+    function startFloatingHearts() {
+      stopFloatingHearts();
+      floatingInterval = setInterval(() => {
+        const h = document.createElement("div");
+        h.className = "floating-heart";
+        h.textContent = ["💖", "💕", "💗", "✨"][Math.floor(Math.random() * 4)];
+        h.style.left = `${10 + Math.random() * 80}%`;
+        h.style.animationDuration = `${3.2 + Math.random() * 2}s`;
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 5500);
+      }, 360);
+    }
+
+    function stopFloatingHearts() {
+      if (floatingInterval) {
+        clearInterval(floatingInterval);
+        floatingInterval = null;
+      }
+    }
+
+    async function runSequence() {
+      bookScene.classList.remove("active");
+      heartScene.classList.remove("active");
+      stopFloatingHearts();
+      matrixRunning = true;
+      matrixCanvas.style.opacity = "0.95";
+      starCanvas.style.opacity = "0";
+
+      await sleep(550);
+      await flashText("3", 750);
+      await flashText("2", 750);
+      await flashText("1", 750);
+
+      for (const word of CONFIG.sequenceWords) {
+        await flashText(word, 900, word.includes("❤") || word.includes("💖"));
+      }
+
+      matrixCanvas.style.opacity = "0.18";
+      starCanvas.style.opacity = "1";
+      currentPage = 0;
+      renderPage(currentPage);
+      bookScene.classList.add("active");
+    }
+
+    startBtn.addEventListener("click", () => {
+      introOverlay.classList.add("hidden");
+      runSequence();
+    });
+
+    function goNext() {
+      if (currentPage < CONFIG.pages.length - 1) {
+        currentPage++;
+        renderPage(currentPage);
+      } else {
+        bookScene.classList.remove("active");
+        heartScene.classList.add("active");
+        buildHeartCollage();
+        startFloatingHearts();
+      }
+    }
+
+    function goPrev() {
+      if (currentPage > 0) {
+        currentPage--;
+        renderPage(currentPage);
+      }
+    }
+
+    nextPageBtn.addEventListener("click", goNext);
+    prevPageBtn.addEventListener("click", goPrev);
+    bookCard.addEventListener("click", goNext);
+
+    replayBtn.addEventListener("click", () => {
+      runSequence();
+    });
+  </script>
+</body>
+</html>
