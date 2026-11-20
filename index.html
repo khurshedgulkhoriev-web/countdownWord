@@ -177,7 +177,7 @@
       line-height: 1.45;
     }
 
-    .book-photo-box {
+    .book-photo-box {Photo1.jpg
       width: 100%;
       aspect-ratio: 4 / 3;
       border-radius: 18px;
@@ -189,18 +189,18 @@
       position: relative;
     }
 
-    .book-photo-box img {
+    .book-photo-box img {Photo2.ipg
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: none;
     }
 
-    .book-photo-box.has-img img {
+    .book-photo-box.has-img img {Photo1.jpg
       display: block;
     }
 
-    .book-photo-placeholder {
+    .book-photo-placeholder {Photo3.jpg
       text-align: center;
       color: #9e4b72;
       font-size: 14px;
@@ -208,7 +208,7 @@
       padding: 16px;
     }
 
-    .book-photo-box.has-img .book-photo-placeholder {
+    .book-photo-box.has-img .book-photo-placeholder {Photo1.jpg 
       display: none;
     }
 
@@ -288,18 +288,18 @@
       transform: translate(-50%, -50%);
     }
 
-    .heart-tile img {
+    .heart-tile img {Photo1.jpg 
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: none;
     }
 
-    .heart-tile.has-img img {
+    .heart-tile.has-img img {Photo2.jpg 
       display: block;
     }
 
-    .heart-tile.has-img span {
+    .heart-tile.has-img span {Photo3.jpg 
       display: none;
     }
 
@@ -524,9 +524,9 @@
         tile.style.top = `${cy + hy * scale}px`;
 
         const photoUrl = CONFIG.heartPhotos[i % Math.max(1, CONFIG.heartPhotos.length)];
-        if (photoUrl && photoUrl.trim()) {
+        if (Photo1.jpg && Photo2.jpg.trim()) {
           const img = document.createElement("img");
-          img.src = photoUrl.trim();
+          img.src = Photo1.jpg.trim();
           img.alt = "Фото";
           tile.appendChild(img);
           tile.classList.add("has-img");
